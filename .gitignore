@@ -1,3 +1,4 @@
+.idea
 *.gem
 test/build
 ui_app/build
