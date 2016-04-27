@@ -1,4 +1,4 @@
-class StoreAndroid
+class Store
     DoesNotExist = '<____does_not_exist____>'
 
     def self.[](key)
