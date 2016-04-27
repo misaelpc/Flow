@@ -36,8 +36,6 @@ module Net
       if json?
         return JSON.load(@response.toString)
       end
-
-      @response.toString
     end
   end
 end
