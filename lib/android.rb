@@ -36,6 +36,10 @@ Motion::Project::App.setup do |app|
     false
   }
 
+  vendor_dir = File.join(File.dirname(__FILE__), '../vendor/android')
+  app.vendor_project :jar => File.join(vendor_dir, 'okhttp-2.4.0.jar')
+  app.vendor_project :jar => File.join(vendor_dir, 'okio-1.4.0.jar')
+
   #app.manifest.child('application') do |application|
   #  application['android:theme'] = '@style/Theme.AppCompat.Light'
   #end
