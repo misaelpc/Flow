@@ -6,8 +6,8 @@ module Net
     attr_reader :configuration, :session, :base_url
 
     def initialize(url, options = {}, session = nil)
+      @client = Com::Squareup::Okhttp::OkHttpClient.new
       @base_url = url
-      @url = Java::Net::URL.new(url)
       @options = options
       @session = session
       @configuration = {}
@@ -19,50 +19,44 @@ module Net
     def run(&callback)
       return if stub!(&callback)
 
-      Task.background do
+      MotionAsync.async do
+        request = Com::Squareup::Okhttp::Request::Builder.new
+        request.url(base_url)
+
         configuration[:headers].each do |key, value|
-          url_connection.setRequestProperty(key, value)
+          request.header(key, value)
         end
 
-        if configuration[:method] == :post && configuration[:body]
-          stream = url_connection.getOutputStream
-          stream.write(Java::Lang::String.new(configuration[:body]).getBytes("UTF-8"))
+        case configuration[:method]
+        when :get
+          request.get
+        when :post
+          media_type = Com::Squareup::Okhttp::MediaType.parse("application/json; charset=utf-8")
+          json = JSON.to_json(configuration[:body])
+          body = create_request_body(media_type, json)
+          request.post(body)
         end
 
-        input_reader = Java::Io::InputStreamReader.new(url_connection.getInputStream)
-  		  input = Java::Io::BufferedReader.new(input_reader)
-  		  inputLine = ""
-  		  response = Java::Lang::StringBuffer.new
-  		  while (inputLine = input.readLine) != nil do
-          response.append(inputLine)
-        end
-        input.close
+        execute_request(request.build)
 
-        Task.main do
-          callback.call(ResponseProxy.build_response(url_connection, response))
-        end
+      end.on(:completion) do |response|
+        callback.call(response)
       end
     end
 
     private
 
-    def url_connection
-      @url_connection ||= build_url_connection
-    end
-
-    def build_url_connection
-      connection = @url.openConnection
-      connection.setRequestMethod(configuration[:method].to_s.upcase)
-      connection.setDoOutput(true) if configuration[:method] == :post
-      connection
-    end
+    def execute_request(request)                                                       
+      response = @client.newCall(request).execute
+      ResponseProxy.build_response(response)
+    end   
 
     def set_defaults
       configuration[:headers] = {
         'User-Agent' => Config.user_agent,
         'Content-Type' => 'application/x-www-form-urlencoded'
       }
-      configuration[:method] = :get
+      configuration[:method] = :get 
       configuration[:body] = ""
       configuration[:connect_timeout] = Config.connect_timeout
       configuration[:read_timeout] = Config.read_timeout
@@ -75,7 +69,6 @@ module Net
           configuration[:headers].merge!({'Authorization' => session.authorization.to_s})
         end
       end
-
       configuration.merge!(@options)
     end
   end

@@ -10,6 +10,8 @@ Gem::Specification.new do |spec|
   spec.license     = 'Proprietary'
   spec.files       = Dir.glob('lib/**/*.rb') +
                      Dir.glob('flow/**/*.rb') +
-                     Dir.glob('template/**/*')
+                     Dir.glob('flow/**/*.java') +
+                     Dir.glob('template/**/*')+
+                     Dir.glob('vendor/**/*')
   spec.metadata    = { "rubymotion_template_dir" => "template" }
 end
