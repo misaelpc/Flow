@@ -19,7 +19,7 @@ module Net
     def run(&callback)
       return if stub!(&callback)
 
-      MotionAsync.async do
+      Task.background do
         request = Com::Squareup::Okhttp::Request::Builder.new
         request.url(base_url)
 
@@ -37,16 +37,17 @@ module Net
           request.post(body)
         end
 
-        response = execute_request(@client, request.build)
+        server_response = execute_request(@client, request.build)
 
-        if(!response.nil?)
-          ResponseProxy.build_response(response)
+        if(!server_response.nil?)
+          response = ResponseProxy.build_response(server_response)
         else
-          ResponseProxy.network_error_response
+          response = ResponseProxy.network_error_response
         end
 
-      end.on(:completion) do |response|
-        callback.call(response)
+        Task.main do
+          callback.call(response)
+        end
       end
     end
 
