@@ -4,6 +4,15 @@ module Net
       self.new(okhttp_response).response
     end
 
+    def self.network_error_response
+      Response.new({
+          status_code: 0,
+          status_message: "Connection error",
+          headers: Array.new(0),
+          body: Hash.new(0)
+        })
+    end
+
     def initialize(okhttp_response)
       @response = okhttp_response
     end

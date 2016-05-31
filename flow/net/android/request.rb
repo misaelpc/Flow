@@ -37,7 +37,13 @@ module Net
           request.post(body)
         end
 
-        execute_request(request.build)
+        response = execute_request(@client, request.build)
+
+        if(!response.nil?)
+          ResponseProxy.build_response(response)
+        else
+          ResponseProxy.network_error_response
+        end
 
       end.on(:completion) do |response|
         callback.call(response)
@@ -45,12 +51,6 @@ module Net
     end
 
     private
-
-    def execute_request(request)                                                       
-      response = @client.newCall(request).execute
-      ResponseProxy.build_response(response)
-    end   
-
     def set_defaults
       configuration[:headers] = {
         'User-Agent' => Config.user_agent,
@@ -71,5 +71,6 @@ module Net
       end
       configuration.merge!(@options)
     end
+    
   end
 end
