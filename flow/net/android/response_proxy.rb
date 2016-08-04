@@ -43,17 +43,15 @@ module Net
     def build_body
       body = ""
       begin
-        body = parse_response(@response.body.charStream)
+        body = parse_response(@response.body)
       rescue Exception => e
         puts e.message
       end
       body
     end
 
-    def parse_response(stream)
-        scanner = Java::Util::Scanner.new(stream)
-        scanner.useDelimiter "\\A"
-        response_string = scanner.next
+    def parse_response(body)
+        response_string = body.string
         JSON.load(response_string)
     end
 

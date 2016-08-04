@@ -4,6 +4,15 @@ module Net
       new(raw_body, response).response
     end
 
+    def self.build_error_response(error_msg)
+      Response.new({
+          status_code: 0,
+          status_message: error_msg, 
+          headers: Array.new(0),
+          body: Hash.new(0)
+        })
+    end
+
     def initialize(raw_body, response)
       @raw_body = raw_body
       @response = response

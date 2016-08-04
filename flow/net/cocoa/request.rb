@@ -22,7 +22,9 @@ module Net
       Task.background do
         handler = lambda { |body, response, error|
           if response.nil? && error
-            raise error.localizedDescription
+            Task.main do
+              callback.call(ResponseProxy.build_error_response(error.localizedDescription))
+            end
           end
           Task.main do
             callback.call(ResponseProxy.build_response(body, response))
@@ -53,8 +55,8 @@ module Net
     end
 
     def build_body(body)
-      return body.to_json.to_data if json?
-      body.to_data
+      built = json? ? body.to_json.to_data : body.to_data
+      built
     end
 
     def build_ns_url_session
